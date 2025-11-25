@@ -338,7 +338,7 @@ public:
     void dump(int indent) const override;
 };
 
-/* ---------------------------- Function declare ---------------------------- */
+/* --------------------------- Function definition ---------------------------- */
 class FuncDef : public ASTNode
 {
 private:
