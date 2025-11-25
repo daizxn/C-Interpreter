@@ -146,13 +146,13 @@ std::unique_ptr<CompUnit> Parser::parseCompUnit()
 TypeSpec Parser::parseTypeSpec()
 {
     bool isConst = false;
-    
+
     // 检查是否有 const 修饰符
     if (match(TokenType::TOK_CONST))
     {
         isConst = true;
     }
-    
+
     if (match(TokenType::TOK_INT))
         return TypeSpec(TypeSpec::INT, isConst);
     if (match(TokenType::TOK_CHAR))
@@ -289,6 +289,11 @@ std::unique_ptr<FuncDef> Parser::parseFuncDef(TypeSpec returnType, const std::st
     consume(TokenType::TOK_RPAREN, "Expected ')' after parameters");
 
     // Block
+    if (check(TokenType::TOK_SEMICOLON))
+    {
+        error("Function definition missing body");
+        return nullptr;
+    }
     auto body = parseBlock();
     funcDef->setBody(std::move(body));
 

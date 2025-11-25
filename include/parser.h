@@ -1,7 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "../lexer/lexer.h"
+#include "lexer.h"
 #include "ast.h"
 #include <memory>
 #include <vector>
