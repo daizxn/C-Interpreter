@@ -107,9 +107,9 @@ std::unique_ptr<CompUnit> Parser::parseCompUnit()
 
     while (!check(TokenType::TOK_EOF))
     {
-        if (!isTypeSpec())
+        if (!isTypeSpec() && !check(TokenType::TOK_CONST))
         {
-            error("Expected type specifier");
+            error("Expected type specifier or const");
             synchronize();
             continue;
         }
@@ -142,18 +142,26 @@ std::unique_ptr<CompUnit> Parser::parseCompUnit()
 /*                              Declarations                                  */
 /* ========================================================================== */
 
-// TypeSpec ::= "int" | "char" | "void"
+// TypeSpec ::= ["const"] ("int" | "char" | "void")
 TypeSpec Parser::parseTypeSpec()
 {
+    bool isConst = false;
+    
+    // 检查是否有 const 修饰符
+    if (match(TokenType::TOK_CONST))
+    {
+        isConst = true;
+    }
+    
     if (match(TokenType::TOK_INT))
-        return TypeSpec(TypeSpec::INT);
+        return TypeSpec(TypeSpec::INT, isConst);
     if (match(TokenType::TOK_CHAR))
-        return TypeSpec(TypeSpec::CHAR);
+        return TypeSpec(TypeSpec::CHAR, isConst);
     if (match(TokenType::TOK_VOID))
-        return TypeSpec(TypeSpec::VOID);
+        return TypeSpec(TypeSpec::VOID, isConst);
 
     error("Expected type specifier (int, char, or void)");
-    return TypeSpec(TypeSpec::INT); // 默认返回 int
+    return TypeSpec(TypeSpec::INT, isConst); // 默认返回 int
 }
 
 // InitDecl ::= IDENT ArraySuffix? ( "=" InitVal )?
@@ -332,7 +340,7 @@ std::unique_ptr<BlockStmt> Parser::parseBlock()
     while (!check(TokenType::TOK_RBRACE) && !check(TokenType::TOK_EOF))
     {
         // BlockItem ::= Decl | Stmt
-        if (isTypeSpec())
+        if (isTypeSpec() || check(TokenType::TOK_CONST))
         {
             // Decl ::= TypeSpec InitDeclList ";"
             TypeSpec type = parseTypeSpec();
@@ -505,7 +513,7 @@ std::unique_ptr<Stmt> Parser::parseForStmt()
     if (!check(TokenType::TOK_SEMICOLON))
     {
         // ForInit ::= Decl | Exp | LVal "=" Exp
-        if (isTypeSpec())
+        if (isTypeSpec() || check(TokenType::TOK_CONST))
         {
             // Decl
             TypeSpec type = parseTypeSpec();

@@ -9,17 +9,26 @@ static void printIndent(int indent)
 /* -------------------------------- TypeSpec -------------------------------- */
 std::string TypeSpec::toString() const
 {
+    std::string result;
+    if (isConst)
+        result = "const ";
+
     switch (kind)
     {
     case INT:
-        return "int";
+        result += "int";
+        break;
     case CHAR:
-        return "char";
+        result += "char";
+        break;
     case VOID:
-        return "void";
+        result += "void";
+        break;
     default:
-        return "unknown";
+        result += "unknown";
+        break;
     }
+    return result;
 }
 
 TypeSpec TypeSpec::fromString(const std::string &s)
@@ -81,11 +90,6 @@ void InitListExpr::dump(int indent) const
 void LValExpr::addIndex(std::unique_ptr<Expr> e)
 {
     indices.push_back(std::move(e));
-}
-
-void InitListExpr::addItem(std::unique_ptr<Expr> item)
-{
-    items.push_back(std::move(item));
 }
 
 void LValExpr::dump(int indent) const

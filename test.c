@@ -3,11 +3,9 @@
 
 // 全局变量声明
 int globalVar = 100;
-int array[10];
+int array[10][10];
 
-// 函数声明
-int add(int x, int y);
-int factorial(int n);
+const int CONST_VAL = 50;
 
 // 加法函数
 int add(int x, int y)

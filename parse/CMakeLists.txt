@@ -20,7 +20,7 @@ target_compile_options(parse_lib PRIVATE -Wall -Wextra)
 # 链接词法分析器库
 target_link_libraries(parse_lib PUBLIC lexer_lib)
 
-option(BUILD_PARSE_TEST "Build parse tests" OFF)
+option(BUILD_PARSE_TEST "Build parse tests" ON)
 if(BUILD_PARSE_TEST)
   add_executable(test_parser test_parser.cpp)
   target_link_libraries(test_parser parse_lib)

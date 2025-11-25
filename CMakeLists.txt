@@ -13,7 +13,7 @@ option(BUILD_TESTS "Build test binaries if available" ON)
 
 # 方便设置构建类型（若用户未指定）
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build." FORCE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build." FORCE)
 endif()
 
 message(STATUS "Project: ${PROJECT_NAME} ${PROJECT_VERSION}")

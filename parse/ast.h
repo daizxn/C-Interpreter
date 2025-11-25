@@ -17,7 +17,10 @@ struct TypeSpec
         VOID
     } kind;
 
-    TypeSpec(Kind k) : kind(k) {}
+    bool isConst;
+
+    TypeSpec(Kind k, bool isConstQualified = false) 
+        : kind(k), isConst(isConstQualified) {}
 
     std::string toString() const;
 
