@@ -44,6 +44,7 @@ private:
     std::vector<std::unique_ptr<ASTNode>> units;
 
 public:
+    const std::vector<std::unique_ptr<ASTNode>> &getUnits() const { return units; }
     void addUnit(std::unique_ptr<ASTNode> u);
     void dump(int indent) const override;
 };
@@ -62,7 +63,8 @@ private:
     std::string name;
 
 public:
-    IdentifierExpr(std::string n) : name(std::move(n)) {};
+    IdentifierExpr(std::string n) : name(std::move(n)) {}
+    const std::string &getName() const { return name; }
     void dump(int indent) const override;
 };
 
@@ -73,7 +75,8 @@ private:
     int value;
 
 public:
-    NumberExpr(int v) : value(v) {};
+    NumberExpr(int v) : value(v) {}
+    int getValue() const { return value; }
     void dump(int indent) const override;
 };
 
@@ -84,7 +87,32 @@ private:
     char value;
 
 public:
-    CharExpr(char v) : value(v) {};
+    CharExpr(char v) : value(v) {}
+    char getValue() const { return value; }
+    void dump(int indent) const override;
+};
+
+/* --------------------------------- String --------------------------------- */
+class StringExpr : public Expr
+{
+private:
+    std::string value;
+
+public:
+    StringExpr(std::string v) : value(std::move(v)) {}
+    const std::string &getValue() const { return value; }
+    void dump(int indent) const override;
+};
+
+/* -------------------------- Initialization list --------------------------- */
+class InitListExpr : public Expr
+{
+private:
+    std::vector<std::unique_ptr<Expr>> items;
+
+public:
+    void addItem(std::unique_ptr<Expr> e) { items.push_back(std::move(e)); }
+    const std::vector<std::unique_ptr<Expr>> &getItems() const { return items; }
     void dump(int indent) const override;
 };
 
@@ -101,6 +129,8 @@ private:
 
 public:
     LValExpr(std::string n) : name(std::move(n)) {}
+    const std::string &getName() const { return name; }
+    const std::vector<std::unique_ptr<Expr>> &getIndices() const { return indices; }
     void addIndex(std::unique_ptr<Expr> e);
     void dump(int indent) const override;
 };
@@ -115,6 +145,8 @@ private:
 public:
     UnaryExpr(std::string o, std::unique_ptr<Expr> r)
         : op(std::move(o)), rhs(std::move(r)) {}
+    const std::string &getOp() const { return op; }
+    const Expr *getRhs() const { return rhs.get(); }
     void dump(int indent) const override;
 };
 
@@ -130,6 +162,9 @@ public:
     BinaryExpr(std::unique_ptr<Expr> l, std::string o,
                std::unique_ptr<Expr> r)
         : op(std::move(o)), lhs(std::move(l)), rhs(std::move(r)) {}
+    const std::string &getOp() const { return op; }
+    const Expr *getLhs() const { return lhs.get(); }
+    const Expr *getRhs() const { return rhs.get(); }
     void dump(int indent) const override;
 };
 
@@ -145,6 +180,9 @@ public:
     TernaryExpr(std::unique_ptr<Expr> c, std::unique_ptr<Expr> e1,
                 std::unique_ptr<Expr> e2)
         : cond(std::move(c)), expr1(std::move(e1)), expr2(std::move(e2)) {}
+    const Expr *getCond() const { return cond.get(); }
+    const Expr *getTrueExpr() const { return expr1.get(); }
+    const Expr *getFalseExpr() const { return expr2.get(); }
     void dump(int indent) const override;
 };
 
@@ -161,6 +199,8 @@ private:
 
 public:
     FuncCallExpr(std::string n) : name(std::move(n)) {}
+    const std::string &getName() const { return name; }
+    const std::vector<std::unique_ptr<Expr>> &getArgs() const { return args; }
     void addArg(std::unique_ptr<Expr> e);
     void dump(int indent) const override;
 };
@@ -180,6 +220,7 @@ private:
 
 public:
     ExprStmt(std::unique_ptr<Expr> e) : expr(std::move(e)) {}
+    const Expr *getExpr() const { return expr.get(); }
     void dump(int indent) const override;
 };
 
@@ -193,6 +234,8 @@ private:
 public:
     AssignStmt(std::unique_ptr<LValExpr> l, std::unique_ptr<Expr> r)
         : lhs(std::move(l)), rhs(std::move(r)) {}
+    const LValExpr *getLhs() const { return lhs.get(); }
+    const Expr *getRhs() const { return rhs.get(); }
     void dump(int indent) const override;
 };
 
@@ -203,6 +246,7 @@ private:
     std::vector<std::unique_ptr<ASTNode>> items; // Decl 或 Stmtc
 
 public:
+    const std::vector<std::unique_ptr<ASTNode>> &getItems() const { return items; }
     void addItem(std::unique_ptr<ASTNode> item);
     void dump(int indent) const override;
 };
@@ -218,6 +262,9 @@ private:
 public:
     IfStmt(std::unique_ptr<Expr> c, std::unique_ptr<Stmt> t, std::unique_ptr<Stmt> e = nullptr)
         : cond(std::move(c)), thenStmt(std::move(t)), elseStmt(std::move(e)) {}
+    const Expr *getCond() const { return cond.get(); }
+    const Stmt *getThenStmt() const { return thenStmt.get(); }
+    const Stmt *getElseStmt() const { return elseStmt.get(); }
     void dump(int indent) const override;
 };
 
@@ -232,6 +279,8 @@ public:
     WhileStmt() {}
     WhileStmt(std::unique_ptr<Expr> c, std::unique_ptr<Stmt> b)
         : cond(std::move(c)), body(std::move(b)) {}
+    const Expr *getCond() const { return cond.get(); }
+    const Stmt *getBody() const { return body.get(); }
     void dump(int indent) const override;
 };
 
@@ -248,6 +297,10 @@ public:
     ForStmt() {}
     ForStmt(std::unique_ptr<ASTNode> i, std::unique_ptr<Expr> c, std::unique_ptr<Expr> s, std::unique_ptr<Stmt> b)
         : init(std::move(i)), cond(std::move(c)), step(std::move(s)), body(std::move(b)) {}
+    const ASTNode *getInit() const { return init.get(); }
+    const Expr *getCond() const { return cond.get(); }
+    const Expr *getStep() const { return step.get(); }
+    const Stmt *getBody() const { return body.get(); }
     void dump(int indent) const override;
 };
 
@@ -273,6 +326,7 @@ private:
 
 public:
     ReturnStmt(std::unique_ptr<Expr> v) : value(std::move(v)) {}
+    const Expr *getValue() const { return value.get(); }
     void dump(int indent) const override;
 };
 /* -------------------------------------------------------------------------- */
@@ -296,6 +350,9 @@ private:
 
 public:
     VarDef(std::string n) : name(std::move(n)) {}
+    const std::string &getName() const { return name; }
+    const std::vector<std::unique_ptr<Expr>> &getDims() const { return dims; }
+    const Expr *getInit() const { return init.get(); }
     void addDim(std::unique_ptr<Expr> e);
     void setInit(std::unique_ptr<Expr> e);
     void dump(int indent) const override;
@@ -314,6 +371,8 @@ private:
 
 public:
     VarDecl(TypeSpec t) : type(std::move(t)) {}
+    const TypeSpec &getType() const { return type; }
+    const std::vector<std::unique_ptr<VarDef>> &getVars() const { return vars; }
     void addVar(std::unique_ptr<VarDef> v);
     void dump(int indent) const override;
 };
@@ -333,6 +392,10 @@ private:
 public:
     FuncParam(TypeSpec t, std::string n)
         : type(std::move(t)), name(std::move(n)) {}
+    const TypeSpec &getType() const { return type; }
+    const std::string &getName() const { return name; }
+    bool getIsArray() const { return isArray; }
+    const std::vector<std::unique_ptr<Expr>> &getDims() const { return dims; }
     void setArray();
     void addDim(std::unique_ptr<Expr> e);
     void dump(int indent) const override;
@@ -354,6 +417,10 @@ private:
 public:
     FuncDef(TypeSpec retType, std::string n)
         : returnType(std::move(retType)), name(std::move(n)) {}
+    const TypeSpec &getReturnType() const { return returnType; }
+    const std::string &getName() const { return name; }
+    const std::vector<std::unique_ptr<FuncParam>> &getParams() const { return params; }
+    const BlockStmt *getBody() const { return body.get(); }
     void addParam(std::unique_ptr<FuncParam> p);
     void setBody(std::unique_ptr<BlockStmt> b);
     void dump(int indent) const override;

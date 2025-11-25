@@ -64,9 +64,28 @@ void CharExpr::dump(int indent) const
     std::cout << "Char('" << value << "')\n";
 }
 
+void StringExpr::dump(int indent) const
+{
+    printIndent(indent);
+    std::cout << "String(\"" << value << "\")\n";
+}
+
+void InitListExpr::dump(int indent) const
+{
+    printIndent(indent);
+    std::cout << "InitList\n";
+    for (const auto &item : items)
+        item->dump(indent + 1);
+}
+
 void LValExpr::addIndex(std::unique_ptr<Expr> e)
 {
     indices.push_back(std::move(e));
+}
+
+void InitListExpr::addItem(std::unique_ptr<Expr> item)
+{
+    items.push_back(std::move(item));
 }
 
 void LValExpr::dump(int indent) const
@@ -232,6 +251,7 @@ void VarDef::setInit(std::unique_ptr<Expr> e)
 {
     init = std::move(e);
 }
+
 void VarDef::dump(int indent) const
 {
     printIndent(indent);
