@@ -1,0 +1,85 @@
+Updated EBNF to match the AST nodes implemented in this file.
+
+CompUnit      ::= { Decl | FuncDef } EOF ;
+
+Decl          ::= TypeSpec InitDeclList ";" ;
+
+TypeSpec      ::= "int" | "char" | "void" ;
+
+InitDeclList  ::= InitDecl { "," InitDecl } ;
+
+InitDecl      ::= IDENT ArraySuffix? ( "=" InitVal )? ;
+
+ArraySuffix   ::= "[" ConstExp? "]" { "[" ConstExp? "]" } ;
+
+InitVal       ::= Exp
+                | "{" [ InitVal { "," InitVal } ] "}" ;
+                // supports nested initialization lists (InitList)
+
+ConstExp      ::= Exp ;
+
+FuncDef       ::= TypeSpec IDENT "(" [ FuncParams ] ")" Block ;
+FuncParams    ::= FuncParam { "," FuncParam } ;
+
+FuncParam     ::= TypeSpec IDENT FuncParamArray? ;
+FuncParamArray ::= "[" "]" { "[" ConstExp? "]" } ;
+
+Stmt          ::= LVal "=" Exp ";"
+                | [Exp] ";"
+                | Block
+                | "if" "(" Exp ")" Stmt [ "else" Stmt ]
+                | "while" "(" Exp ")" Stmt
+                | "for" "(" ForInit? ";" ForCond? ";" ForLoop? ")" Stmt
+                | "return" [Exp] ";"
+                | "break" ";"
+                | "continue" ";" ;
+
+ForInit       ::= Decl | Exp | LVal "=" Exp ;
+                // ForStmt::init in AST can be a Decl (variable decl) or an Expr/assignment stmt
+ForCond       ::= Exp ;
+ForLoop       ::= Exp | LVal "=" Exp ;
+
+Block         ::= "{" { BlockItem } "}" ;
+BlockItem     ::= Decl | Stmt ;
+
+Exp           ::= ConditionalExp ;
+
+ConditionalExp ::= LOrExp
+                 | LOrExp "?" Exp ":" ConditionalExp ;
+
+LOrExp        ::= LAndExp { "||" LAndExp } ;
+LAndExp       ::= OrExp  { "&&" OrExp  } ;
+
+OrExp         ::= XorExp { "|"  XorExp } ;
+XorExp        ::= AndExp { "^"  AndExp } ;
+AndExp        ::= EqExp  { "&"  EqExp  } ;
+
+EqExp         ::= RelExp { ("==" | "!=") RelExp } ;
+
+RelExp        ::= ShiftExp { ("<" | ">" | "<=" | ">=") ShiftExp } ;
+
+AddExp        ::= MulExp { ("+" | "-") MulExp } ;
+
+MulExp        ::= UnaryExp { ("*" | "/" | "%") UnaryExp } ;
+
+UnaryExp      ::= PrimaryExp
+                | IDENT "(" [ FuncRParams ] ")"
+                | UnaryOp UnaryExp ;
+
+UnaryOp       ::= "+" | "-" | "!" | "~" | "++" | "--" ;
+
+PrimaryExp    ::= "(" Exp ")"
+                | LVal
+                | Number
+                | String
+                | CharLiteral ;
+
+LVal          ::= IDENT { "[" Exp "]" } ;
+
+Number        ::= TOK_NUMBER ;
+String        ::= TOK_STRING ;
+CharLiteral   ::= TOK_CHAR_LITERAL ;
+
+FuncRParams   ::= Exp { "," Exp } ;
+
+
