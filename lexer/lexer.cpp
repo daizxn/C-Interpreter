@@ -18,6 +18,7 @@ static const std::map<std::string, TokenType> keywords = {
     {"int", TokenType::TOK_INT},
     {"char", TokenType::TOK_CHAR},
     {"void", TokenType::TOK_VOID},
+    {"const", TokenType::TOK_CONST},
     {"if", TokenType::TOK_IF},
     {"else", TokenType::TOK_ELSE},
     {"while", TokenType::TOK_WHILE},
