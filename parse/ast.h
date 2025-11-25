@@ -239,14 +239,14 @@ public:
 class ForStmt : public Stmt
 {
 private:
-    std::unique_ptr<Stmt> init; // 可能是 Decl 或 ExprStmt
+    std::unique_ptr<ASTNode> init; // 可能是 Decl 或 Stmt
     std::unique_ptr<Expr> cond;
     std::unique_ptr<Expr> step;
     std::unique_ptr<Stmt> body;
 
 public:
     ForStmt() {}
-    ForStmt(std::unique_ptr<Stmt> i, std::unique_ptr<Expr> c, std::unique_ptr<Expr> s, std::unique_ptr<Stmt> b)
+    ForStmt(std::unique_ptr<ASTNode> i, std::unique_ptr<Expr> c, std::unique_ptr<Expr> s, std::unique_ptr<Stmt> b)
         : init(std::move(i)), cond(std::move(c)), step(std::move(s)), body(std::move(b)) {}
     void dump(int indent) const override;
 };
