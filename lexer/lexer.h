@@ -15,6 +15,7 @@ enum class TokenType
     TOK_INT,
     TOK_CHAR,
     TOK_VOID,
+    TOK_CONST,
     TOK_IF,
     TOK_ELSE,
     TOK_WHILE,
