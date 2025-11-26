@@ -29,6 +29,7 @@ pip-log.txt
 coverage.xml
 htmlcov/
 .pytest_cache/
+test/
 
 # Type checkers / caches
 .mypy_cache/
