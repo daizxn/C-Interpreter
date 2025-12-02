@@ -92,9 +92,7 @@ private:
     std::unique_ptr<Expr> parseUnaryExpr();       // 一元运算 + - ! ~
     std::unique_ptr<Expr> parsePrimaryExpr();     // 基本表达式 变量、常量、括号表达式
     std::unique_ptr<LValExpr> parseLVal();        // 左值表达式 变量或数组元素
-
-    /* ------------------------------- Const Expr ------------------------------- */
-    std::unique_ptr<Expr> parseConstExpr(); // 常量表达式（语法上等同于Exp）
+    std::unique_ptr<Expr> parseConstExpr();       // 常量表达式（语法上等同于Exp）
 
     /* -------------------------------------------------------------------------- */
     /*                              Auxiliary methods                             */

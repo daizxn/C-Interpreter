@@ -10,6 +10,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(BUILD_LEXER "Build lexer module" ON)
 option(BUILD_PARSE "Build parse module" ON)
 option(BUILD_AST "Build ast module" ON)
+option(BUILD_SEMANTIC "Build semantic analysis module" ON)
 option(BUILD_TESTS "Build test binaries if available" ON)
 
 # 方便设置构建类型（若用户未指定）
@@ -19,7 +20,7 @@ endif()
 
 message(STATUS "Project: ${PROJECT_NAME} ${PROJECT_VERSION}")
 message(STATUS "C++ standard: ${CMAKE_CXX_STANDARD}")
-message(STATUS "BUILD_LEXER=${BUILD_LEXER} BUILD_PARSE=${BUILD_PARSE} BUILD_TESTS=${BUILD_TESTS}")
+message(STATUS "BUILD_LEXER=${BUILD_LEXER} BUILD_AST=${BUILD_AST} BUILD_PARSE=${BUILD_PARSE} BUILD_SEMANTIC=${BUILD_SEMANTIC} BUILD_TESTS=${BUILD_TESTS}")
 
 # 在顶层暴露 include 路径（子模块可分别设置自己的 include）
 include(GNUInstallDirs)
@@ -42,5 +43,9 @@ endif()
 
 if(BUILD_PARSE)
   add_subdirectory(parse)
+endif()
+
+if(BUILD_SEMANTIC)
+  add_subdirectory(semantic)
 endif()
 

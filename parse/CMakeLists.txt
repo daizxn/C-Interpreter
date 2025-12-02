@@ -6,7 +6,7 @@ add_library(parse_lib STATIC
   parser.cpp
 )
 
-# 暴露顶层 include，使其他模块可直接包含 <ast.h> 等头文件
+# 暴露顶层 include
 target_include_directories(parse_lib
   PUBLIC
   ${CMAKE_SOURCE_DIR}/include
