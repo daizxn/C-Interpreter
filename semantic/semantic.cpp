@@ -1,4 +1,4 @@
-#include "semantic.h.old"
+#include "semantic.h"
 #include <llvm/IR/Verifier.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/FileSystem.h>
@@ -6,9 +6,10 @@
 #include <iostream>
 #include <sstream>
 
-/* -------------------------------------------------------------------------- */
-/*                                Symbol Table                                */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+/*                              Symbol Table                                  */
+/* ========================================================================== */
+
 SymbolTable::SymbolTable()
 {
     enterScope(); // 全局作用域
@@ -52,9 +53,9 @@ SymbolInfo *SymbolTable::lookup(const std::string &name)
     return nullptr;
 }
 
-/* -------------------------------------------------------------------------- */
-/*                               Code Generator                               */
-/* -------------------------------------------------------------------------- */
+/* ========================================================================== */
+/*                           Code Generator                                   */
+/* ========================================================================== */
 
 CodeGenerator::CodeGenerator(const std::string &moduleName)
     : hasErrors(false), currentFunction(nullptr)
@@ -73,7 +74,8 @@ void CodeGenerator::error(const std::string &message)
     std::cerr << "Semantic Error: " << message << std::endl;
 }
 
-/* --------------------- Type system auxiliary functions -------------------- */
+/* ======================== 类型系统辅助函数 ============================ */
+
 llvm::Type *CodeGenerator::getLLVMType(const TypeSpec &typeSpec)
 {
     switch (typeSpec.kind)
@@ -118,6 +120,11 @@ llvm::Type *CodeGenerator::getArrayType(llvm::Type *elementType,
     return type;
 }
 
+// 获取数组元素类型（剥离指定层数的数组类型）
+// 参数：
+//   arrayType - 数组类型
+//   indexCount - 要剥离的维度数量
+//   symInfo - 符号信息（可选），用于获取数组参数的维度信息
 llvm::Type *CodeGenerator::getArrayElementType(llvm::Type *arrayType, size_t indexCount,
                                                const SymbolInfo *symInfo)
 {
@@ -148,7 +155,7 @@ llvm::Type *CodeGenerator::getArrayElementType(llvm::Type *arrayType, size_t ind
             if (remainingDims == 0)
             {
                 // 最后一维，返回基本类型
-                // 假设所有数组元素都是 int 类型
+                // 假设所有数组元素都是 int 类型（可以扩展支持其他类型）
                 return llvm::Type::getInt32Ty(*context);
             }
             else
@@ -214,7 +221,8 @@ llvm::Value *CodeGenerator::convertToBool(llvm::Value *val)
     return nullptr;
 }
 
-/* ----------------------- Expression code generation ----------------------- */
+/* ========================= 表达式代码生成 ============================= */
+
 llvm::Value *CodeGenerator::generateExpr(Expr *expr)
 {
     if (!expr)
@@ -278,6 +286,7 @@ llvm::Value *CodeGenerator::generateLValExpr(LValExpr *expr)
         if (!elemPtr)
             return nullptr;
 
+        // 元素类型是 i32（根据我们的语言规范）
         llvm::Type *elemType = llvm::Type::getInt32Ty(*context);
 
         // 加载数组元素的值
@@ -640,12 +649,51 @@ llvm::Value *CodeGenerator::generateFuncCallExpr(FuncCallExpr *expr)
 
     // 生成参数
     std::vector<llvm::Value *> argsV;
+    size_t argIdx = 0;
     for (const auto &arg : expr->getArgs())
     {
-        llvm::Value *argVal = generateExpr(arg.get());
+        llvm::Value *argVal = nullptr;
+
+        // 检查参数是否应该是数组（指针类型）
+        llvm::Type *expectedType = calleeF->getFunctionType()->getParamType(argIdx);
+
+        // 如果参数是左值表达式（变量）
+        if (auto *lvalExpr = dynamic_cast<LValExpr *>(arg.get()))
+        {
+            SymbolInfo *sym = symbolTable.lookup(lvalExpr->getName());
+            if (sym)
+            {
+                // 如果函数期望指针类型，且变量是数组
+                if (expectedType->isPointerTy() && sym->type->isArrayTy())
+                {
+                    // 传递数组的首地址，而不是加载数组的值
+                    // 使用 GEP 获取数组首元素的指针
+                    std::vector<llvm::Value *> indices;
+                    indices.push_back(llvm::ConstantInt::get(*context, llvm::APInt(32, 0)));
+                    indices.push_back(llvm::ConstantInt::get(*context, llvm::APInt(32, 0)));
+                    argVal = builder->CreateGEP(sym->type, sym->allocaInst, indices, "arraydecay");
+                }
+                else
+                {
+                    // 标量变量或其他情况：正常生成表达式
+                    argVal = generateExpr(arg.get());
+                }
+            }
+            else
+            {
+                argVal = generateExpr(arg.get());
+            }
+        }
+        else
+        {
+            // 非左值表达式：正常生成
+            argVal = generateExpr(arg.get());
+        }
+
         if (!argVal)
             return nullptr;
         argsV.push_back(argVal);
+        argIdx++;
     }
 
     // 对于 void 函数，调用不返回值
@@ -670,7 +718,8 @@ llvm::Value *CodeGenerator::generateInitListExpr(InitListExpr *expr, llvm::Type 
     return nullptr;
 }
 
-/* ------------------ Array processing auxiliary functions ------------------ */
+/* ======================== 数组处理辅助函数 ============================ */
+
 void CodeGenerator::flattenInitList(InitListExpr *initList, std::vector<llvm::Value *> &values)
 {
     for (const auto &item : initList->getItems())
@@ -769,7 +818,8 @@ void CodeGenerator::initializeArray(llvm::Value *arrayPtr, llvm::Type *arrayType
     }
 }
 
-/* ------------------------ Statement code generation ----------------------- */
+/* ========================== 语句代码生成 ============================== */
+
 void CodeGenerator::generateStmt(Stmt *stmt)
 {
     if (!stmt)
@@ -1079,7 +1129,7 @@ void CodeGenerator::generateContinueStmt(ContinueStmt * /*stmt*/)
     builder->CreateBr(loopStack.top().continueBlock);
 }
 
-/* ------------------------- Declare code generation ------------------------ */
+/* ========================== 声明代码生成 ============================== */
 
 void CodeGenerator::generateDecl(Decl *decl)
 {
@@ -1284,7 +1334,7 @@ void CodeGenerator::generateLocalVar(VarDecl *decl, VarDef *varDef, llvm::Type *
     }
 }
 
-/* ------------------- Function definition code generation ------------------ */
+/* ======================= 函数定义代码生成 ============================= */
 
 llvm::Function *CodeGenerator::generateFuncDef(FuncDef *funcDef)
 {
@@ -1422,7 +1472,8 @@ void CodeGenerator::generateFuncParams(llvm::Function *func,
     }
 }
 
-/* --------------------- Top-level generation functions --------------------- */
+/* ======================= 顶层生成函数 ================================= */
+
 bool CodeGenerator::generate(CompUnit *compUnit)
 {
     for (const auto &unit : compUnit->getUnits())
@@ -1447,7 +1498,8 @@ bool CodeGenerator::generate(CompUnit *compUnit)
     return !hasErrors;
 }
 
-/* --------------------------- IR output function --------------------------- */
+/* ======================= IR 输出函数 ================================== */
+
 std::string CodeGenerator::getIRString()
 {
     std::string str;

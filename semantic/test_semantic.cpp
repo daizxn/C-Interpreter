@@ -1,4 +1,4 @@
-#include "semantic.h.old"
+#include "semantic.h"
 #include "parser.h"
 #include "lexer.h"
 #include <iostream>
