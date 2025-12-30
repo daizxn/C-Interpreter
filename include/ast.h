@@ -6,8 +6,6 @@
 #include <string>
 #include <iostream>
 
-static void printIndent(int indent);
-
 struct TypeSpec
 {
     enum Kind
@@ -19,7 +17,7 @@ struct TypeSpec
 
     bool isConst;
 
-    TypeSpec(Kind k, bool isConstQualified = false) 
+    TypeSpec(Kind k, bool isConstQualified = false)
         : kind(k), isConst(isConstQualified) {}
 
     std::string toString() const;
